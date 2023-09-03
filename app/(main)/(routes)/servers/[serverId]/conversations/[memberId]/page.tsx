@@ -1,4 +1,6 @@
 import { ChatHeader } from "@/components/chat/chat-header";
+import { ChatInput } from "@/components/chat/chat-input";
+import { ChatMessages } from "@/components/chat/chat-messages";
 import { getOrCreateConversation } from "@/lib/conversation";
 import { currentProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
@@ -31,16 +33,16 @@ const MemberIDPage = async ({ params }: MemberIdPageProps) => {
     return redirect("/");
   }
 
-  const conversaton = await getOrCreateConversation(
+  const conversation = await getOrCreateConversation(
     currentMember.id,
     params.memberId
   );
 
-  if (!conversaton) {
+  if (!conversation) {
     return redirect(`/servers/${params.serverId}`);
   }
 
-  const { memberOne, memberTwo } = conversaton;
+  const { memberOne, memberTwo } = conversation;
 
   const otherMember =
     memberOne.profileId === profile.id ? memberTwo : memberOne;
@@ -52,6 +54,27 @@ const MemberIDPage = async ({ params }: MemberIdPageProps) => {
         name={otherMember.profile.name}
         serverId={params.serverId}
         type="conversation"
+      />
+      <ChatMessages
+        member={currentMember}
+        name={otherMember.profile.name}
+        chatId={conversation.id}
+        apiUrl="/api/direct-messages"
+        type="conversation"
+        paramKey="conversationId"
+        paramValue={conversation.id}
+        socketUrl="/api/socket/direct-messages"
+        socketQuery={{
+          conversationId: conversation.id,
+        }}
+      />
+      <ChatInput
+        name={otherMember.profile.name}
+        type="conversation"
+        apiUrl="/api/socket/direct-messages"
+        query={{
+          conversationId: conversation.id,
+        }}
       />
     </div>
   );
